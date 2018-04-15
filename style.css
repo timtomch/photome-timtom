@@ -1,0 +1,27 @@
+/*
+ Theme Name:   Photo Me Timtom edit
+ Theme URI:    https://timtom.ch
+ Description:  Photo Me Child Theme for pics.timtom.ch
+ Author:       Thomas Guignard
+ Author URI:   https://timtom.ch
+ Template:     photome
+ Version:      1.0.0
+ License:      GNU General Public License v2 or later
+ License: GNU General Public License
+ License URI: http://themeforest.net/licenses/regular_extended
+ Tags: yellow, white, responsive-layout, custom-header, custom-background, threaded-comments, translation-ready, editor-style, custom-menu
+*/
+
+@media screen and (min-width: 1100px) {
+	.tt-horizontal-gallery-content {
+		padding: 0px 90px 0px 90px;
+    	font-weight: normal;
+	}
+}
+
+@media screen and (max-width: 960px) {
+	.tt-horizontal-gallery-content {
+		padding: 0px 30px 0px 30px;
+    	font-weight: normal;
+	}
+}
