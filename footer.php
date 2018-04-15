@@ -1,6 +1,7 @@
 <?php
 /**
  * The template for displaying the footer.
+ * Tweaked for fotome-timtom child theme.
  *
  * @package WordPress
  */

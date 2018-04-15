@@ -1,6 +1,7 @@
 <?php
 /**
  * The main template file for display portfolio page.
+ * Tweaked for the fotome-timtom child theme: display page content underneath the gallery.
  *
  * @package WordPress
  */
