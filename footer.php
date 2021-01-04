@@ -32,18 +32,27 @@
 		{
 			$pp_flickr_id = get_option('pp_flickr_id');
 			$photos_arr = get_flickr(array('type' => 'user', 'id' => $pp_flickr_id, 'items' => 10));
-			
+            
 			//TT mod
 			$tt_widget_title = ucfirst($pp_photostream);
 		}
 		else
 		{
 			$pp_instagram_username = get_option('pp_instagram_username');
-			$pp_instagram_access_token = get_option('pp_instagram_access_token');
-			$photos_arr = tg_get_instagram($pp_instagram_username, $pp_instagram_access_token, 10);
+			$is_instagram_authorized = photome_check_instagram_authorization();
 			
+			if(is_bool($is_instagram_authorized) && $is_instagram_authorized)
+			{
+				$photos_arr = photome_get_instagram_using_plugin('photostream');
+			}
+			else
+			{
+				echo $is_instagram_authorized;
+			}
+            
 			//TT mod
 			$tt_widget_title = "<a href=\"https://www.instagram.com/".$pp_instagram_username."\">Follow @".$pp_instagram_username." on Instagram</a>";
+
 		}
 		
 		if(!empty($photos_arr) && $screen_class != 'split' && $pp_homepage_style != 'fullscreen' && $pp_homepage_style != 'flow')
@@ -54,11 +63,22 @@
 	<h2 class="widgettitle"><span><?php echo $tt_widget_title; ?></span></h2>
 	<ul class="footer_photostream">
 		<?php
+			$count_photo = 0;
+			
 			foreach($photos_arr as $photo)
 			{
+				if(isset($photo['thumb_url']) && !empty($photo['thumb_url']))
+				{
 		?>
 			<li style="background-image:url(<?php echo esc_url($photo['thumb_url']); ?>);"><a target="_blank" href="<?php echo esc_url($photo['link']); ?>"></a></li>
 		<?php
+					$count_photo++;
+					
+					if($count_photo == 10)
+					{
+						break;
+					}
+				}
 			}
 		?>
 	</ul>
@@ -144,7 +164,7 @@
 			    		if(!empty($pp_twitter_username))
 			    		{
 			    	?>
-			    	<li class="twitter"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> href="http://twitter.com/<?php echo esc_attr($pp_twitter_username); ?>"><i class="fa fa-twitter"></i></a></li>
+			    	<li class="twitter"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> href="https://twitter.com/<?php echo esc_attr($pp_twitter_username); ?>"><i class="fa fa-twitter"></i></a></li>
 			    	<?php
 			    		}
 			    	?>
@@ -154,7 +174,7 @@
 			    		if(!empty($pp_flickr_username))
 			    		{
 			    	?>
-			    	<li class="flickr"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> title="Flickr" href="http://flickr.com/people/<?php echo esc_attr($pp_flickr_username); ?>"><i class="fa fa-flickr"></i></a></li>
+			    	<li class="flickr"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> title="Flickr" href="https://flickr.com/people/<?php echo esc_attr($pp_flickr_username); ?>"><i class="fa fa-flickr"></i></a></li>
 			    	<?php
 			    		}
 			    	?>
@@ -174,7 +194,7 @@
 			    		if(!empty($pp_vimeo_username))
 			    		{
 			    	?>
-			    	<li class="vimeo"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> title="Vimeo" href="http://vimeo.com/<?php echo esc_attr($pp_vimeo_username); ?>"><i class="fa fa-vimeo-square"></i></a></li>
+			    	<li class="vimeo"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> title="Vimeo" href="https://vimeo.com/<?php echo esc_attr($pp_vimeo_username); ?>"><i class="fa fa-vimeo-square"></i></a></li>
 			    	<?php
 			    		}
 			    	?>
@@ -184,17 +204,7 @@
 			    		if(!empty($pp_tumblr_username))
 			    		{
 			    	?>
-			    	<li class="tumblr"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> title="Tumblr" href="http://<?php echo esc_attr($pp_tumblr_username); ?>.tumblr.com"><i class="fa fa-tumblr"></i></a></li>
-			    	<?php
-			    		}
-			    	?>
-			    	<?php
-			    		$pp_google_url = get_option('pp_google_url');
-			    		
-			    		if(!empty($pp_google_url))
-			    		{
-			    	?>
-			    	<li class="google"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> title="Google+" href="<?php echo esc_url($pp_google_url); ?>"><i class="fa fa-google-plus"></i></a></li>
+			    	<li class="tumblr"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> title="Tumblr" href="https://<?php echo esc_attr($pp_tumblr_username); ?>.tumblr.com"><i class="fa fa-tumblr"></i></a></li>
 			    	<?php
 			    		}
 			    	?>
@@ -204,7 +214,7 @@
 			    		if(!empty($pp_dribbble_username))
 			    		{
 			    	?>
-			    	<li class="dribbble"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> title="Dribbble" href="http://dribbble.com/<?php echo esc_attr($pp_dribbble_username); ?>"><i class="fa fa-dribbble"></i></a></li>
+			    	<li class="dribbble"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> title="Dribbble" href="https://dribbble.com/<?php echo esc_attr($pp_dribbble_username); ?>"><i class="fa fa-dribbble"></i></a></li>
 			    	<?php
 			    		}
 			    	?>
@@ -224,7 +234,7 @@
 			            if(!empty($pp_pinterest_username))
 			            {
 			        ?>
-			        <li class="pinterest"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> title="Pinterest" href="http://pinterest.com/<?php echo esc_attr($pp_pinterest_username); ?>"><i class="fa fa-pinterest"></i></a></li>
+			        <li class="pinterest"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> title="Pinterest" href="https://pinterest.com/<?php echo esc_attr($pp_pinterest_username); ?>"><i class="fa fa-pinterest"></i></a></li>
 			        <?php
 			            }
 			        ?>
@@ -234,7 +244,7 @@
 			        	if(!empty($pp_instagram_username))
 			        	{
 			        ?>
-			        <li class="instagram"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> title="Instagram" href="http://instagram.com/<?php echo esc_attr($pp_instagram_username); ?>"><i class="fa fa-instagram"></i></a></li>
+			        <li class="instagram"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> title="Instagram" href="https://instagram.com/<?php echo esc_attr($pp_instagram_username); ?>"><i class="fa fa-instagram"></i></a></li>
 			        <?php
 			        	}
 			        ?>
@@ -244,7 +254,7 @@
 			        	if(!empty($pp_behance_username))
 			        	{
 			        ?>
-			        <li class="behance"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> title="Behance" href="http://behance.net/<?php echo esc_attr($pp_behance_username); ?>"><i class="fa fa-behance-square"></i></a></li>
+			        <li class="behance"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> title="Behance" href="https://behance.net/<?php echo esc_attr($pp_behance_username); ?>"><i class="fa fa-behance-square"></i></a></li>
 			        <?php
 			        	}
 			        ?>
@@ -254,7 +264,7 @@
 			        	if(!empty($pp_500px_username))
 			        	{
 			        ?>
-			        <li class="500px"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> title="500px" href="http://500px.com/<?php echo $pp_500px_username; ?>"><i class="fa fa-500px"></i></a></li>
+			        <li class="500px"><a <?php if(!empty($tg_footer_social_link)) { ?>target="_blank"<?php } ?> title="500px" href="https://500px.com/<?php echo esc_html($pp_500px_username); ?>"><i class="fa fa-500px"></i></a></li>
 			        <?php
 			        	}
 			        ?>
@@ -283,7 +293,7 @@
 
 	        if(!empty($tg_footer_copyright_text))
 	        {
-	        	echo '<div id="copyright">'.wp_kses_post(htmlspecialchars_decode($tg_footer_copyright_text)).'</div><br class="clear"/>';
+	        	echo '<div id="copyright">'.wp_kses_post(wp_specialchars_decode($tg_footer_copyright_text)).'</div><br class="clear"/>';
 	        }
 	    ?>
 	    
@@ -339,7 +349,7 @@
     	Photo Me is so powerful theme allow you to easily create your own style of creative photography site. Here are example that can be imported with one click.</p>
     	<ul class="demo_list">
     		<li>
-        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen1.jpg" alt=""/>
+        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen1.jpg" alt="Classic"/>
         		<div class="demo_thumb_hover_wrapper">
         		    <div class="demo_thumb_hover_inner">
         		    	<div class="demo_thumb_desc">
@@ -350,7 +360,7 @@
         		</div>		   
     		</li>
     		<li>
-        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen2.jpg" alt=""/>
+        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen2.jpg" alt="Top Bar Enabled"/>
         		<div class="demo_thumb_hover_wrapper">
         		    <div class="demo_thumb_hover_inner">
         		    	<div class="demo_thumb_desc">
@@ -361,7 +371,7 @@
         		</div>		   
     		</li>
     		<li>
-        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen8.jpg" alt=""/>
+        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen8.jpg" alt="Left Menu"/>
         		<div class="demo_thumb_hover_wrapper">
         		    <div class="demo_thumb_hover_inner">
         		    	<div class="demo_thumb_desc">
@@ -372,7 +382,7 @@
         		</div>		   
     		</li>
     		<li>
-        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen4.jpg" alt=""/>
+        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen4.jpg" alt="White Frame"/>
         		<div class="demo_thumb_hover_wrapper">
         		    <div class="demo_thumb_hover_inner">
         		    	<div class="demo_thumb_desc">
@@ -383,7 +393,7 @@
         		</div>		   
     		</li>
     		<li>
-        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen5.jpg" alt=""/>
+        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen5.jpg" alt="Black Frame & One Page"/>
         		<div class="demo_thumb_hover_wrapper">
         		    <div class="demo_thumb_hover_inner">
         		    	<div class="demo_thumb_desc">
@@ -394,7 +404,7 @@
         		</div>		   
     		</li>
     		<li>
-        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen6.jpg" alt=""/>
+        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen6.jpg" alt="Boxed Layout"/>
         		<div class="demo_thumb_hover_wrapper">
         		    <div class="demo_thumb_hover_inner">
         		    	<div class="demo_thumb_desc">
@@ -405,7 +415,7 @@
         		</div>		   
     		</li>
     		<li>
-        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen7.jpg" alt=""/>
+        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen7.jpg" alt="Minimal Menu & Footer"/>
         		<div class="demo_thumb_hover_wrapper">
         		    <div class="demo_thumb_hover_inner">
         		    	<div class="demo_thumb_desc">
@@ -416,7 +426,7 @@
         		</div>		   
     		</li>
     		<li>
-        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen3.jpg" alt=""/>
+        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen3.jpg" alt="Side Menu Only"/>
         		<div class="demo_thumb_hover_wrapper">
         		    <div class="demo_thumb_hover_inner">
         		    	<div class="demo_thumb_desc">
@@ -427,7 +437,7 @@
         		</div>		   
     		</li>
     		<li>
-        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen9.jpg" alt=""/>
+        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen9.jpg" alt="Fullscreen Video"/>
         		<div class="demo_thumb_hover_wrapper">
         		    <div class="demo_thumb_hover_inner">
         		    	<div class="demo_thumb_desc">
@@ -438,7 +448,7 @@
         		</div>		   
     		</li>
     		<li>
-        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen10.jpg" alt=""/>
+        		<img src="<?php echo get_template_directory_uri(); ?>/cache/demos/screen10.jpg" alt="Photo Blog"/>
         		<div class="demo_thumb_hover_wrapper">
         		    <div class="demo_thumb_hover_inner">
         		    	<div class="demo_thumb_desc">
@@ -454,9 +464,8 @@
     </div>
     <div id="option_btn">
     	<a href="javascript:;" class="demotip" title="Choose Theme Demo"><i class="fa fa-cog"></i></a>
-    	<a href="http://themes.themegoods.com/photome/test/wp-content/plugins/gt-custom/gt-custom.php?gtlo" class="demotip" title="Test Customizer of Theme" target="_blank"><i class="fa fa-edit"></i></a>
-    	<a href="http://themes.themegoods.com/photome/doc" class="demotip" title="Theme Documentation" target="_blank"><i class="fa fa-book"></i></a>
-    	<a href="http://themeforest.net/item/photo-me-photo-gallery-photography-theme/12074651?ref=ThemeGoods&license=regular&open_purchase_for_item_id=12074651&purchasable=source&ref=ThemeGoods&clickthrough_id=492502739&redirect_back=true" class="demotip" title="Purchase Theme" target="_blank"><i class="fa fa-shopping-basket"></i></a>
+    	<a href="https://themes.themegoods.com/photome/doc" class="demotip" title="Theme Documentation" target="_blank"><i class="fa fa-book"></i></a>
+    	<a href="https://1.envato.market/7kGN3" class="demotip" title="Purchase Theme" target="_blank"><i class="fa fa-shopping-basket"></i></a>
     </div>
 <?php
     	wp_enqueue_script("jquery.cookie", get_template_directory_uri()."/js/jquery.cookie.js", false, THEMEVERSION, true);
